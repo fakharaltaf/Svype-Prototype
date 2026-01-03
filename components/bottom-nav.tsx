@@ -1,7 +1,7 @@
 "use client"
 
 import { usePathname, useRouter } from "next/navigation"
-import { Home, Briefcase, User, LayoutDashboard } from "lucide-react"
+import { Home, Briefcase, User, LayoutDashboard, MessageCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export function BottomNav() {
@@ -18,6 +18,11 @@ export function BottomNav() {
       icon: LayoutDashboard, 
       label: "Dashboard", 
       href: "/protected/dashboard" 
+    },
+    { 
+      icon: MessageCircle, 
+      label: "Chat", 
+      href: "/protected/chat" 
     },
     { 
       icon: User, 

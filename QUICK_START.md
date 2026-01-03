@@ -1,4 +1,4 @@
-# 🚀 Quick Start Guide - Svype Implementation
+# 🚀 Quick Start Guide - Talash Implementation
 
 ## Current Status
 ✅ **Working:** UI, Pages, Auth Bypass, Database Schema  

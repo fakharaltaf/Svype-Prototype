@@ -1,7 +1,7 @@
-# Svype Job App - Comprehensive Implementation Plan
+# Talash Job App - Comprehensive Implementation Plan
 
 ## 🎯 Project Overview
-**Svype** is a Tinder-style job application platform with AI-powered career coaching. Users swipe right to apply, swipe left to skip, and receive personalized guidance through AI chat.
+**Talash** is a Tinder-style job application platform with AI-powered career coaching. Users swipe right to apply, swipe left to skip, and receive personalized guidance through AI chat.
 
 ---
 
@@ -236,7 +236,7 @@ Add better visual feedback:
     <Card className="p-3 bg-muted">
       <div className="flex items-center gap-2">
         <div className="animate-pulse">💭</div>
-        <p className="text-sm">Svype AI is thinking...</p>
+        <p className="text-sm">Talash AI is thinking...</p>
       </div>
     </Card>
   </div>
@@ -460,7 +460,7 @@ OPENAI_API_KEY=your-key
 5. Test production build
 
 #### Step 10.3: Domain Setup
-1. Buy domain (e.g., svype.app)
+1. Buy domain (e.g., talash.app)
 2. Configure DNS in Vercel
 3. Enable SSL
 
@@ -476,11 +476,11 @@ OPENAI_API_KEY=your-key
 
 ```typescript
 export const metadata: Metadata = {
-  title: "Svype - Find Your Dream Job with a Swipe",
+  title: "Talash - Find Your Dream Job with a Swipe",
   description: "AI-powered job matching platform. Swipe right to apply, get personalized career coaching, and land your dream role.",
   keywords: ["jobs", "careers", "job search", "AI career coach", "job matching"],
   openGraph: {
-    title: "Svype - Swipe Your Way to Your Dream Job",
+    title: "Talash - Swipe Your Way to Your Dream Job",
     description: "AI-powered job matching platform",
     images: ["/og-image.png"],
   },

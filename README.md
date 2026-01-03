@@ -1,4 +1,4 @@
-# Svype - Job Application Prototype
+# Talash - Job Application Prototype
 
 A Tinder-style job swiping application built with Next.js. This is a **prototype version** using mock data for demonstration purposes.
 
@@ -84,10 +84,10 @@ Contains all mock data and functions:
 
 ### Storage Keys
 Data is stored in localStorage with these keys:
-- `svype_jobs` - All available jobs
-- `svype_applications` - Jobs you've applied to
-- `svype_discarded` - Jobs you've passed on
-- `svype_profile` - Your profile information
+- `talash_jobs` - All available jobs
+- `talash_applications` - Jobs you've applied to
+- `talash_discarded` - Jobs you've passed on
+- `talash_profile` - Your profile information
 
 ## 🔄 Converting to Production
 

@@ -1,246 +1,480 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion"
-import { Card, CardContent } from "@/components/ui/card"
+import { useState, useEffect, useRef } from "react"
+import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, DollarSign, Undo2, X, Heart } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import Image from "next/image"
-import { useRouter } from "next/navigation"
-import { initializeMockData, getAvailableJobs, applyToJob, discardJob, undoDiscard, type Job } from "@/lib/mock-data"
+import { X, Check, MapPin, Calendar, Briefcase, DollarSign, ChevronUp, ChevronDown, Undo2 } from "lucide-react"
+import { getAvailableJobs, applyToJob, discardJob, Job, initializeMockData, undoDiscard, resetMockData } from "@/lib/mock-data"
 
 export default function SwipePage() {
   const [jobs, setJobs] = useState<Job[]>([])
-  const [loading, setLoading] = useState(true)
-  const [undoItem, setUndoItem] = useState<{ jobId: string; timer: NodeJS.Timeout } | null>(null)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [startPos, setStartPos] = useState({ x: 0, y: 0 })
+  const [showDetails, setShowDetails] = useState(false)
+  const [lastDiscarded, setLastDiscarded] = useState<Job | null>(null)
   const [showUndo, setShowUndo] = useState(false)
-  const { toast } = useToast()
-  const router = useRouter()
-
-  const fetchJobs = useCallback(() => {
-    setLoading(true)
-    // Initialize mock data on first load
-    initializeMockData()
-    // Get available jobs from mock data
-    const availableJobs = getAvailableJobs()
-    setJobs(availableJobs)
-    setLoading(false)
-  }, [])
+  const cardRef = useRef<HTMLDivElement>(null)
+  const undoTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
-    fetchJobs()
-  }, [fetchJobs])
+    initializeMockData()
+    loadJobs()
+  }, [])
 
-  const handleApply = (jobId: string) => {
-    const job = jobs.find(j => j.id === jobId)
-    if (!job) return
-
-    applyToJob(job)
-    toast({ title: "Applied!", description: "Check your dashboard for updates." })
-    setJobs((prev) => prev.filter((j) => j.id !== jobId))
+  const loadJobs = () => {
+    const availableJobs = getAvailableJobs()
+    setJobs(availableJobs)
   }
 
-  const handleDiscard = (jobId: string) => {
-    discardJob(jobId)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true)
+    setStartPos({
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    })
+  }
 
-    // Set up undo
-    if (undoItem) clearTimeout(undoItem.timer)
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return
 
-    const timer = setTimeout(() => {
-      setShowUndo(false)
-      setUndoItem(null)
-    }, 5000)
+    const currentX = e.touches[0].clientX
+    const currentY = e.touches[0].clientY
 
-    setUndoItem({ jobId, timer })
-    setShowUndo(true)
-    setJobs((prev) => prev.filter((j) => j.id !== jobId))
+    setDragOffset({
+      x: currentX - startPos.x,
+      y: currentY - startPos.y,
+    })
+  }
+
+  const handleTouchEnd = () => {
+    if (!isDragging) return
+    setIsDragging(false)
+
+    const threshold = 100
+
+    // Swipe left - discard
+    if (dragOffset.x < -threshold) {
+      handleDiscard()
+      setDragOffset({ x: 0, y: 0 })
+      return
+    }
+
+    // Swipe right - apply
+    if (dragOffset.x > threshold) {
+      handleApply()
+      setDragOffset({ x: 0, y: 0 })
+      return
+    }
+
+    // Swipe up - show details
+    if (dragOffset.y < -threshold) {
+      setShowDetails(true)
+    }
+
+    setDragOffset({ x: 0, y: 0 })
+  }
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true)
+    setStartPos({
+      x: e.clientX,
+      y: e.clientY,
+    })
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return
+
+    setDragOffset({
+      x: e.clientX - startPos.x,
+      y: e.clientY - startPos.y,
+    })
+  }
+
+  const handleMouseUp = () => {
+    if (!isDragging) return
+    setIsDragging(false)
+
+    const threshold = 100
+
+    // Swipe left - discard
+    if (dragOffset.x < -threshold) {
+      handleDiscard()
+      setDragOffset({ x: 0, y: 0 })
+      return
+    }
+
+    // Swipe right - apply
+    if (dragOffset.x > threshold) {
+      handleApply()
+      setDragOffset({ x: 0, y: 0 })
+      return
+    }
+
+    // Swipe up - show details
+    if (dragOffset.y < -threshold) {
+      setShowDetails(true)
+    }
+
+    setDragOffset({ x: 0, y: 0 })
+  }
+
+  const handleApply = () => {
+    const currentJob = jobs[currentIndex]
+    if (currentJob) {
+      applyToJob(currentJob)
+      setJobs(jobs.filter((_, index) => index !== currentIndex))
+    }
+    setShowDetails(false)
+  }
+
+  const handleDiscard = () => {
+    const currentJob = jobs[currentIndex]
+    if (currentJob) {
+      discardJob(currentJob.id)
+      setJobs(jobs.filter((_, index) => index !== currentIndex))
+      setLastDiscarded(currentJob)
+      setShowUndo(true)
+      
+      // Clear any existing timer
+      if (undoTimerRef.current) {
+        clearTimeout(undoTimerRef.current)
+      }
+      
+      // Hide undo button after 5 seconds
+      undoTimerRef.current = setTimeout(() => {
+        setShowUndo(false)
+        setLastDiscarded(null)
+      }, 5000)
+    }
+    setShowDetails(false)
   }
 
   const handleUndo = () => {
-    if (!undoItem) return
-    clearTimeout(undoItem.timer)
-
-    undoDiscard(undoItem.jobId)
-
-    // Re-fetch to put it back
-    fetchJobs()
-    setShowUndo(false)
-    setUndoItem(null)
+    if (lastDiscarded) {
+      undoDiscard(lastDiscarded.id)
+      setJobs([lastDiscarded, ...jobs])
+      setLastDiscarded(null)
+      setShowUndo(false)
+      
+      if (undoTimerRef.current) {
+        clearTimeout(undoTimerRef.current)
+      }
+    }
   }
 
-  if (loading) {
+  const handleReset = () => {
+    resetMockData()
+    loadJobs()
+    setCurrentIndex(0)
+    setLastDiscarded(null)
+    setShowUndo(false)
+    if (undoTimerRef.current) {
+      clearTimeout(undoTimerRef.current)
+    }
+  }
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (undoTimerRef.current) {
+        clearTimeout(undoTimerRef.current)
+      }
+    }
+  }, [])
+
+  const formatSalary = (min: number, max: number) => {
+    return `£${(min / 1000).toFixed(0)}k - £${(max / 1000).toFixed(0)}k`
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffTime = Math.abs(now.getTime() - date.getTime())
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays === 1) return "1 day ago"
+    if (diffDays < 7) return `${diffDays} days ago`
+    if (diffDays < 14) return "1 week ago"
+    return `${Math.floor(diffDays / 7)} weeks ago`
+  }
+
+  if (jobs.length === 0) {
     return (
-      <div className="flex flex-col h-svh bg-background overflow-hidden">
-        <header className="p-4 border-b flex items-center justify-between z-10 bg-background">
-          <h1 className="text-2xl font-bold text-primary">Svype</h1>
-        </header>
-        <main className="flex-1 flex items-center justify-center p-4">
-          <div className="w-full max-w-[350px] aspect-[3/4]">
-            <Card className="w-full h-full overflow-hidden shadow-xl border-2 animate-pulse">
-              <CardContent className="p-0 h-full relative bg-muted" />
-            </Card>
-          </div>
-        </main>
+      <div className="flex flex-col h-screen bg-background items-center justify-center p-4">
+        <Card className="w-full max-w-md p-8 text-center">
+          <h2 className="text-xl font-semibold mb-4">No More Jobs</h2>
+          <p className="text-muted-foreground mb-6">
+            You've seen all available jobs. Check back later for new opportunities!
+          </p>
+          <Button onClick={handleReset}>Refresh</Button>
+        </Card>
       </div>
     )
   }
 
-  return (
-    <div className="flex flex-col h-svh bg-background overflow-hidden relative">
-      <header className="p-4 border-b flex items-center justify-between z-10 bg-background">
-        <h1 className="text-2xl font-bold text-primary">Svype</h1>
-        <div className="flex gap-2">
-          <Button variant="ghost" size="icon" onClick={() => router.push("/protected/dashboard")}>
-            <Badge className="absolute -top-1 -right-1 px-1 min-w-[1.2rem] h-[1.2rem]">3</Badge>
-            <DollarSign className="w-5 h-5" />
-          </Button>
-        </div>
-      </header>
+  const currentJob = jobs[currentIndex]
 
-      <main className="flex-1 relative flex items-center justify-center p-4">
-        <AnimatePresence>
-          {jobs.length > 0 ? (
-            jobs
-              .slice(0, 2)
-              .reverse()
-              .map((job, index) => (
-                <SwipeCard
-                  key={job.id}
-                  job={job}
-                  onSwipeRight={() => handleApply(job.id)}
-                  onSwipeLeft={() => handleDiscard(job.id)}
-                  isTop={index === 1 || jobs.length === 1}
-                />
-              ))
-          ) : (
-            <div className="text-center p-8">
-              <h2 className="text-xl font-semibold mb-2">No more jobs!</h2>
-              <p className="text-muted-foreground mb-4">You've seen everything for today.</p>
-              <Button onClick={fetchJobs}>Refresh</Button>
+  return (
+    <div className="flex flex-col h-screen bg-gradient-to-b from-background to-muted/20 overflow-hidden">
+      {/* Job Counter */}
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
+        <Badge variant="secondary" className="px-4 py-2 text-sm font-medium shadow-lg">
+          {jobs.length} {jobs.length === 1 ? 'job' : 'jobs'} remaining
+        </Badge>
+      </div>
+
+      {/* Main Card Container */}
+      <div className="flex-1 flex items-center justify-center p-4 relative">
+        <div
+          ref={cardRef}
+          className="relative w-full max-w-md h-[85vh] touch-none"
+          style={{
+            transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${dragOffset.x * 0.05}deg)`,
+            transition: isDragging ? "none" : "transform 0.3s ease-out",
+            cursor: isDragging ? "grabbing" : "grab",
+            opacity: Math.max(0.5, 1 - Math.abs(dragOffset.x) / 300),
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+        >
+          {/* Swipe Overlays */}
+          {dragOffset.x > 50 && (
+            <div className="absolute inset-0 bg-green-500/20 rounded-lg flex items-center justify-center z-10 pointer-events-none">
+              <div className="bg-green-500 text-white p-4 rounded-full shadow-lg transform rotate-12">
+                <Check className="w-12 h-12" strokeWidth={3} />
+              </div>
             </div>
           )}
-        </AnimatePresence>
-      </main>
-
-      {/* Undo Popup */}
-      <AnimatePresence>
-        {showUndo && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50"
-          >
-            <Button
-              onClick={handleUndo}
-              className="bg-primary text-primary-foreground shadow-lg rounded-full px-6 flex gap-2 items-center"
-            >
-              <Undo2 className="w-4 h-4" />
-              Undo Discard (5s)
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <footer className="p-6 flex justify-center gap-8 z-10 bg-background border-t">
-        <Button
-          variant="outline"
-          size="lg"
-          className="rounded-full w-14 h-14 border-destructive text-destructive hover:bg-destructive hover:text-white bg-transparent"
-          onClick={() => jobs[0] && handleDiscard(jobs[0].id)}
-        >
-          <X className="w-6 h-6" />
-        </Button>
-        <Button
-          variant="outline"
-          size="lg"
-          className="rounded-full w-14 h-14 border-primary text-primary hover:bg-primary hover:text-white bg-transparent"
-          onClick={() => jobs[0] && handleApply(jobs[0].id)}
-        >
-          <Heart className="w-6 h-6" />
-        </Button>
-      </footer>
-    </div>
-  )
-}
-
-function SwipeCard({
-  job,
-  onSwipeRight,
-  onSwipeLeft,
-  isTop,
-}: {
-  job: Job
-  onSwipeRight: () => void
-  onSwipeLeft: () => void
-  isTop: boolean
-}) {
-  const x = useMotionValue(0)
-  const rotate = useTransform(x, [-200, 200], [-25, 25])
-  const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0])
-  const likeOpacity = useTransform(x, [50, 150], [0, 1])
-  const nopeOpacity = useTransform(x, [-50, -150], [0, 1])
-
-  const handleDragEnd = (_: any, info: any) => {
-    if (info.offset.x > 100) {
-      onSwipeRight()
-    } else if (info.offset.x < -100) {
-      onSwipeLeft()
-    }
-  }
-
-  return (
-    <motion.div
-      style={{ x, rotate, opacity, zIndex: isTop ? 10 : 0 }}
-      drag={isTop ? "x" : false}
-      dragConstraints={{ left: 0, right: 0 }}
-      onDragEnd={handleDragEnd}
-      initial={{ scale: 0.9, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ x: x.get() > 0 ? 500 : -500, opacity: 0 }}
-      transition={{ duration: 0.3 }}
-      className="absolute w-full max-w-[350px] aspect-[3/4]"
-    >
-      <Card className="w-full h-full overflow-hidden shadow-xl border-2">
-        <CardContent className="p-0 h-full relative">
-          <Image
-            src={`https://api.dicebear.com/7.x/shapes/svg?seed=${job.id}`}
-            alt={job.company}
-            fill
-            className="object-cover"
-          />
-
-          <motion.div
-            style={{ opacity: likeOpacity }}
-            className="absolute top-10 left-10 border-4 border-primary text-primary font-black text-4xl px-4 py-2 rounded-xl rotate-[-20deg] uppercase"
-          >
-            Apply
-          </motion.div>
-
-          <motion.div
-            style={{ opacity: nopeOpacity }}
-            className="absolute top-10 right-10 border-4 border-destructive text-destructive font-black text-4xl px-4 py-2 rounded-xl rotate-[20deg] uppercase"
-          >
-            Pass
-          </motion.div>
-
-          <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent text-white">
-            <h2 className="text-2xl font-bold">{job.title}</h2>
-            <p className="text-lg opacity-90">{job.company}</p>
-            <div className="flex flex-wrap gap-2 mt-2">
-              <Badge variant="secondary" className="flex gap-1 items-center bg-white/20 hover:bg-white/30 text-white">
-                <MapPin className="w-3 h-3" /> {job.location}
-              </Badge>
-              <Badge variant="secondary" className="flex gap-1 items-center bg-white/20 hover:bg-white/30 text-white">
-                <DollarSign className="w-3 h-3" /> £{job.salary_min.toLocaleString()} - £{job.salary_max.toLocaleString()}
-              </Badge>
+          {dragOffset.x < -50 && (
+            <div className="absolute inset-0 bg-red-500/20 rounded-lg flex items-center justify-center z-10 pointer-events-none">
+              <div className="bg-red-500 text-white p-4 rounded-full shadow-lg transform -rotate-12">
+                <X className="w-12 h-12" strokeWidth={3} />
+              </div>
             </div>
-            <p className="mt-3 text-sm line-clamp-2 opacity-80">{job.description}</p>
+          )}
+          {dragOffset.y < -50 && dragOffset.x > -50 && dragOffset.x < 50 && (
+            <div className="absolute inset-0 bg-blue-500/20 rounded-lg flex items-center justify-center z-10 pointer-events-none">
+              <div className="bg-blue-500 text-white p-4 rounded-full shadow-lg">
+                <ChevronUp className="w-12 h-12" strokeWidth={3} />
+              </div>
+            </div>
+          )}
+
+          <Card className="w-full h-full overflow-hidden shadow-2xl bg-card/95 backdrop-blur-sm">
+            {/* Card Content */}
+            <div className="h-full flex flex-col p-6 relative">
+              {/* Swipe Indicator */}
+              <div className="absolute top-4 right-4 text-muted-foreground/50 text-xs">
+                ↑ Details
+              </div>
+
+              {/* Company & Title */}
+              <div className="mb-4">
+                <h2 className="text-3xl font-bold mb-2">{currentJob.title}</h2>
+                <p className="text-xl text-muted-foreground font-medium">{currentJob.company}</p>
+              </div>
+
+              {/* Key Info */}
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <MapPin className="w-5 h-5" />
+                  <span>{currentJob.location}</span>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Briefcase className="w-5 h-5" />
+                  <span>{currentJob.type}</span>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <DollarSign className="w-5 h-5" />
+                  <span>{formatSalary(currentJob.salary_min, currentJob.salary_max)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Calendar className="w-5 h-5" />
+                  <span>Posted {formatDate(currentJob.posted_at)}</span>
+                </div>
+              </div>
+
+              {/* Description Preview */}
+              <div className="flex-1 mb-6">
+                <h3 className="font-semibold mb-2 text-lg">About the role</h3>
+                <p className="text-muted-foreground line-clamp-6">{currentJob.description}</p>
+              </div>
+
+              {/* Requirements Preview */}
+              <div className="mb-6">
+                <h3 className="font-semibold mb-2 text-lg">Key Requirements</h3>
+                <div className="flex flex-wrap gap-2">
+                  {currentJob.requirements.slice(0, 4).map((req, index) => (
+                    <Badge key={index} variant="outline">
+                      {req}
+                    </Badge>
+                  ))}
+                  {currentJob.requirements.length > 4 && (
+                    <Badge variant="outline">+{currentJob.requirements.length - 4} more</Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1 border-red-200 hover:bg-red-50 hover:border-red-300"
+                  size="lg"
+                  onClick={handleDiscard}
+                >
+                  <X className="w-5 h-5 mr-2" />
+                  Pass
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  size="lg"
+                  onClick={() => setShowDetails(true)}
+                >
+                  <ChevronUp className="w-5 h-5 mr-2" />
+                  Details
+                </Button>
+                <Button
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  size="lg"
+                  onClick={handleApply}
+                >
+                  <Check className="w-5 h-5 mr-2" />
+                  Apply
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Swipe Hints */}
+        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 text-center text-muted-foreground/50 text-sm">
+          <p>← Pass • ↑ Details • Apply →</p>
+        </div>
+      </div>
+
+      {/* Undo Button */}
+      {showUndo && lastDiscarded && (
+        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-bottom-5 duration-300">
+          <Button
+            onClick={handleUndo}
+            variant="secondary"
+            size="lg"
+            className="shadow-2xl bg-background border-2 border-primary hover:bg-muted"
+          >
+            <Undo2 className="w-5 h-5 mr-2" />
+            Undo Pass on {lastDiscarded.company}
+          </Button>
+        </div>
+      )}
+
+      {/* Job Details Panel - Slides from bottom */}
+      {showDetails && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+          onClick={() => setShowDetails(false)}
+        />
+      )}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-[60] bg-background rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out flex flex-col"
+        style={{
+          transform: showDetails ? 'translateY(0)' : 'translateY(100%)',
+          height: '85vh',
+        }}
+      >
+        {/* Drag Handle */}
+        <div className="flex justify-center py-3 border-b flex-shrink-0">
+          <button
+            onClick={() => setShowDetails(false)}
+            className="w-12 h-1.5 bg-muted-foreground/30 rounded-full hover:bg-muted-foreground/50 transition-colors"
+          />
+        </div>
+
+        {/* Content */}
+        <div className="overflow-y-auto flex-1 p-6">
+          {/* Header */}
+          <div className="mb-6">
+            <div className="flex items-start justify-between mb-2">
+              <h2 className="text-3xl font-bold flex-1">{currentJob.title}</h2>
+              <button
+                onClick={() => setShowDetails(false)}
+                className="p-2 hover:bg-muted rounded-full transition-colors"
+              >
+                <ChevronDown className="w-6 h-6" />
+              </button>
+            </div>
+            <p className="text-xl text-muted-foreground font-medium">{currentJob.company}</p>
           </div>
-        </CardContent>
-      </Card>
-    </motion.div>
+
+          <div className="space-y-6 pb-6">
+            {/* Job Details */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <MapPin className="w-5 h-5" />
+                <span>{currentJob.location}</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Briefcase className="w-5 h-5" />
+                <span>{currentJob.type}</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <DollarSign className="w-5 h-5" />
+                <span>{formatSalary(currentJob.salary_min, currentJob.salary_max)}</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Calendar className="w-5 h-5" />
+                <span>Posted {formatDate(currentJob.posted_at)}</span>
+              </div>
+            </div>
+
+            {/* Full Description */}
+            <div>
+              <h3 className="font-semibold mb-2 text-lg">About the Role</h3>
+              <p className="text-muted-foreground">{currentJob.description}</p>
+            </div>
+
+            {/* Full Requirements */}
+            <div>
+              <h3 className="font-semibold mb-2 text-lg">Requirements</h3>
+              <ul className="space-y-2">
+                {currentJob.requirements.map((req, index) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <span className="text-primary mt-1">•</span>
+                    <span className="text-muted-foreground">{req}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-3 pt-4">
+              <Button size="lg" onClick={handleApply} className="w-full bg-green-600 hover:bg-green-700">
+                <Check className="w-5 h-5 mr-2" />
+                Apply Now
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={handleDiscard}
+                className="w-full border-red-200 hover:bg-red-50 hover:border-red-300"
+              >
+                <X className="w-5 h-5 mr-2" />
+                Pass on this job
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }

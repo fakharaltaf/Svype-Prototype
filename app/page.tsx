@@ -12,7 +12,7 @@ export default function Home() {
               <Zap size={32} />
             </div>
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-balance">Svype</h1>
+          <h1 className="text-4xl font-extrabold tracking-tight text-balance">Talash</h1>
           <p className="text-muted-foreground text-lg text-pretty">
             Find your dream job with a single swipe. AI-powered career coaching and interactive job hunting.
           </p>

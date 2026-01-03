@@ -26,7 +26,7 @@ export default function Page() {
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10 bg-muted/30">
       <div className="w-full max-w-sm">
         <div className="flex flex-col gap-6 text-center mb-8">
-          <h1 className="text-4xl font-black text-primary tracking-tighter">SVYPE</h1>
+          <h1 className="text-4xl font-black text-primary tracking-tighter">TALASH</h1>
           <p className="text-muted-foreground">Join the elite network of career swipers.</p>
         </div>
         <Card className="border-2">

@@ -156,10 +156,10 @@ export const mockProfile: Profile = {
 
 // Local storage keys
 const STORAGE_KEYS = {
-  JOBS: 'svype_jobs',
-  APPLICATIONS: 'svype_applications',
-  DISCARDED: 'svype_discarded',
-  PROFILE: 'svype_profile',
+  JOBS: 'talash_jobs',
+  APPLICATIONS: 'talash_applications',
+  DISCARDED: 'talash_discarded',
+  PROFILE: 'talash_profile',
 };
 
 // Initialize local storage with mock data if empty
@@ -178,6 +178,16 @@ export function initializeMockData() {
   if (!localStorage.getItem(STORAGE_KEYS.PROFILE)) {
     localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(mockProfile));
   }
+}
+
+// Reset all data to initial state
+export function resetMockData() {
+  if (typeof window === 'undefined') return;
+
+  localStorage.setItem(STORAGE_KEYS.JOBS, JSON.stringify(mockJobs));
+  localStorage.setItem(STORAGE_KEYS.APPLICATIONS, JSON.stringify(mockApplications));
+  localStorage.setItem(STORAGE_KEYS.DISCARDED, JSON.stringify([]));
+  localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(mockProfile));
 }
 
 // Get available jobs (excluding applied and discarded)
