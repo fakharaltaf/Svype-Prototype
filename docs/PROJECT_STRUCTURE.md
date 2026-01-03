@@ -133,7 +133,7 @@ docs/
 
 ### Package Management
 - `package.json` - Dependencies and scripts
-- `pnpm-lock.yaml` - pnpm lockfile
+- `pnpm-lock.yaml` - Package lockfile
 
 ### Environment
 - `.env.local` - Local environment variables
@@ -169,19 +169,10 @@ docs/
 
 ### Running the App
 ```bash
-pnpm dev          # Start development server
-pnpm build        # Production build
-pnpm start        # Start production server
+npm dev          # Start development server
+npm build        # Production build
+npm start        # Start production server
 ```
-
-### Database Setup
-```bash
-# Run schemas in order
-psql -f database/001_initial_schema.sql
-psql -f database/002_seed_jobs.sql
-```
-
----
 
 ## Tech Stack
 
@@ -189,7 +180,7 @@ psql -f database/002_seed_jobs.sql
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS + shadcn/ui
 - **Database**: Supabase (PostgreSQL)
-- **Package Manager**: pnpm
+- **Package Manager**: npm
 - **Icons**: Lucide React
 - **Animations**: tw-animate-css
 

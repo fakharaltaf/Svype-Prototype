@@ -68,7 +68,7 @@ See [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) for detailed document
 
 ### Prerequisites
 - Node.js 18+ 
-- pnpm (recommended) or npm
+- npm
 
 ### Installation
 
@@ -80,7 +80,7 @@ See [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) for detailed document
 
 2. **Install dependencies**
    ```bash
-   pnpm install
+   npm install
    ```
 
 3. **Set up environment variables**
@@ -103,7 +103,7 @@ See [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) for detailed document
 
 5. **Start development server**
    ```bash
-   pnpm dev
+   npm run dev
    ```
 
 6. **Open the app**
@@ -131,10 +131,10 @@ See [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) for detailed document
 ### Available Scripts
 
 ```bash
-pnpm dev          # Start development server
-pnpm build        # Build for production
-pnpm start        # Start production server
-pnpm lint         # Run ESLint
+npm run dev       # Start development server
+npm run build     # Build for production
+npm start         # Start production server
+npm run lint      # Run ESLint
 ```
 
 ### Mock Data
