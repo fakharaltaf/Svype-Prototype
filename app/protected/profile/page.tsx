@@ -164,6 +164,18 @@ export default function ProfilePage() {
         {/* Settings Card */}
         <Card className="border-2">
           <CardHeader>
+            <CardTitle className="text-lg">Quick Access</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <SettingsItem icon={<Award className="w-5 h-5 text-amber-500" />} label="Skills Assessment" onClick={() => router.push("/protected/skills-assessment")} />
+            <SettingsItem icon={<Sparkles className="w-5 h-5 text-purple-500" />} label="Interview Preparation" onClick={() => router.push("/protected/interview-prep")} />
+            <SettingsItem icon={<Briefcase className="w-5 h-5 text-blue-500" />} label="Saved Jobs" onClick={() => router.push("/protected/saved")} />
+          </CardContent>
+        </Card>
+
+        {/* Settings Card */}
+        <Card className="border-2">
+          <CardHeader>
             <CardTitle className="text-lg">Account Settings</CardTitle>
           </CardHeader>
           <CardContent className="p-0">

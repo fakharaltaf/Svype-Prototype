@@ -45,14 +45,14 @@ export default function DashboardPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "applied":
+      case "APPLIED":
         return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-      case "interviewing":
+      case "SHORTLISTED":
+        return "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+      case "INTERVIEW":
         return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-      case "offered":
-        return "bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary"
-      case "rejected":
-        return "bg-destructive/10 text-destructive dark:bg-destructive/20"
+      case "REJECTED":
+        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
       default:
         return "bg-muted text-muted-foreground"
     }
@@ -60,12 +60,14 @@ export default function DashboardPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "applied":
+      case "APPLIED":
         return <Clock className="w-4 h-4" />
-      case "interviewing":
+      case "SHORTLISTED":
+        return <TrendingUp className="w-4 h-4" />
+      case "INTERVIEW":
         return <Calendar className="w-4 h-4" />
-      case "offered":
-        return <CheckCircle2 className="w-4 h-4" />
+      case "REJECTED":
+        return <span className="text-base">✕</span>
       default:
         return <Briefcase className="w-4 h-4" />
     }
@@ -148,7 +150,11 @@ export default function DashboardPage() {
               </div>
             ) : filteredApplications.length > 0 ? (
               filteredApplications.map((app) => (
-                <Card key={app.id} className="overflow-hidden border-2 hover:border-primary/50 transition-all hover:shadow-lg">
+                <Card 
+                  key={app.id} 
+                  className="overflow-hidden border-2 hover:border-primary/50 transition-all hover:shadow-lg cursor-pointer"
+                  onClick={() => router.push(`/protected/application/${app.id}`)}
+                >
                   <CardContent className="p-5">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
@@ -156,11 +162,10 @@ export default function DashboardPage() {
                         <p className="text-muted-foreground font-medium">{app.job.company}</p>
                       </div>
                       <Badge 
-                        variant={app.status === 'active' ? 'default' : 'secondary'}
-                        className="flex gap-1 items-center capitalize"
+                        className={`flex gap-1.5 items-center font-medium ${getStatusColor(app.applicationStatus)}`}
                       >
-                        {getStatusIcon(app.status)}
-                        {app.status}
+                        {getStatusIcon(app.applicationStatus)}
+                        {app.applicationStatus}
                       </Badge>
                     </div>
 

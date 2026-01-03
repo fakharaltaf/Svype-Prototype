@@ -231,7 +231,6 @@ export default function SwipePage() {
           {jobs.length} {jobs.length === 1 ? 'job' : 'jobs'} remaining
         </Badge>
       </div>
-
       {/* Main Card Container */}
       <div className="flex-1 flex items-center justify-center p-4 relative">
         <div

@@ -13,10 +13,13 @@ export interface Job {
   posted_at: string;
 }
 
+export type ApplicationStatus = 'APPLIED' | 'SHORTLISTED' | 'INTERVIEW' | 'REJECTED';
+
 export interface Application {
   id: string;
   job: Job;
   status: 'active' | 'closed';
+  applicationStatus: ApplicationStatus;
   applied_at: string;
 }
 
@@ -208,10 +211,16 @@ export function applyToJob(job: Job): void {
   if (typeof window === 'undefined') return;
 
   const applications = JSON.parse(localStorage.getItem(STORAGE_KEYS.APPLICATIONS) || '[]') as Application[];
+  
+  // Assign random status for demo purposes
+  const statuses: ApplicationStatus[] = ['APPLIED', 'SHORTLISTED', 'INTERVIEW', 'REJECTED'];
+  const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+  
   const newApplication: Application = {
     id: `app-${Date.now()}`,
     job,
-    status: 'active',
+    status: randomStatus === 'REJECTED' ? 'closed' : 'active',
+    applicationStatus: randomStatus,
     applied_at: new Date().toISOString(),
   };
   applications.push(newApplication);

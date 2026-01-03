@@ -174,7 +174,7 @@ export default function ReviewApplicantsPage() {
         </div>
       </header>
 
-      <div className="flex-1 flex items-center justify-center p-4 relative">
+      <div className="flex-1 flex items-start justify-center p-4 relative">
         <div
           ref={cardRef}
           className="relative w-full max-w-md h-[75vh] touch-none mx-auto"
