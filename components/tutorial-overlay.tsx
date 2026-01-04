@@ -1,3 +1,4 @@
+// components/tutorial-overlay.tsx
 "use client"
 
 import { useState, useEffect } from "react"

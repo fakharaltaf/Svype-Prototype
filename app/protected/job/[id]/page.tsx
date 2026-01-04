@@ -1,3 +1,4 @@
+// app/protected/job/[id]/page.tsx
 "use client"
 
 import { useState, useEffect } from "react"

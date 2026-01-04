@@ -1,3 +1,4 @@
+// app/protected/profile-preview/page.tsx
 "use client"
 
 import { useState } from "react"

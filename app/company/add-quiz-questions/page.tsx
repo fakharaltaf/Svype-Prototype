@@ -1,3 +1,4 @@
+// app/company/add-quiz-questions/page.tsx
 "use client"
 
 import { useState } from "react"

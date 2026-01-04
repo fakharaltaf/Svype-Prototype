@@ -1,3 +1,4 @@
+// app/company/posts/page.tsx
 "use client"
 
 import { useState } from "react"

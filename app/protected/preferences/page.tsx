@@ -1,3 +1,4 @@
+// app/protected/preferences/page.tsx
 "use client"
 
 import { useState } from "react"

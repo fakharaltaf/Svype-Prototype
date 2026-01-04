@@ -1,3 +1,4 @@
+// app/protected/generate-cover-letter/page.tsx
 "use client"
 
 import { useState } from "react"

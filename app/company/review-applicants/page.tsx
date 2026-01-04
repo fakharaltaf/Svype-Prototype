@@ -1,3 +1,4 @@
+// app/company/review-applicants/page.tsx
 "use client"
 
 import { useState, useRef } from "react"

@@ -1,3 +1,4 @@
+// app/protected/skills-assessment/page.tsx
 "use client"
 
 import { useState } from "react"

@@ -1,3 +1,4 @@
+// app/company/ai-shortlist/page.tsx
 "use client"
 
 import { useState } from "react"

@@ -1,3 +1,4 @@
+// app/auth/company-sign-up/page.tsx
 "use client"
 
 import { useState } from "react"

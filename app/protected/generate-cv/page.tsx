@@ -1,3 +1,4 @@
+// app/protected/generate-cv/page.tsx
 "use client"
 
 import { useState } from "react"

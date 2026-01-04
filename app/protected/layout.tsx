@@ -1,3 +1,4 @@
+// app/protected/layout.tsx
 import { BottomNav } from "@/components/bottom-nav"
 
 export default function ProtectedLayout({

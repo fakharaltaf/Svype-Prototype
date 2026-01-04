@@ -1,3 +1,4 @@
+// app/protected/company/[slug]/page.tsx
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"

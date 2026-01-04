@@ -1,3 +1,4 @@
+// components/loading-skeletons.tsx
 "use client"
 
 import { Card } from "@/components/ui/card"

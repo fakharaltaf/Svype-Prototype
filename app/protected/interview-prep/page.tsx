@@ -1,3 +1,4 @@
+// app/protected/interview-prep/page.tsx
 "use client"
 
 import { useState } from "react"
